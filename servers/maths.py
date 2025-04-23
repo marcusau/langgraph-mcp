@@ -6,7 +6,7 @@ from mcp.server.fastmcp import FastMCP
 from typing import Any
 import sys
 
-mcp = FastMCP("Math")
+mcp = FastMCP("Math", host="127.0.0.1", port=8050)
 
 # @mcp.tool()
 # def add(a: int, b: int) -> int:
@@ -46,4 +46,4 @@ async def multiply_numbers(value1: int, value2:int) -> int:
 
 if __name__ == "__main__":
     print("Server env is ", sys.prefix)
-    mcp.run(transport="stdio")
+    mcp.run(transport="sse")

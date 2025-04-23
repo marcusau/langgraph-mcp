@@ -2,11 +2,20 @@ import re
 from mcp.server.fastmcp import FastMCP
 from youtube_transcript_api import YouTubeTranscriptApi
 
-mcp = FastMCP("youtube_transcript")
+mcp = FastMCP("youtube_transcript", host="127.0.0.1", port=8080)
 
 @mcp.tool()
 def get_youtube_transcript(url: str) -> dict:
-    """Fetches transcript from a given YouTube URL."""
+    """Fetches transcript from a given YouTube URL.
+
+    Args:
+        url: YouTube video URL to fetch transcript from
+
+    Returns:
+        dict: Dictionary containing either transcript text or error message
+            - transcript: String containing the video transcript if successful
+            - error: Error message if request failed
+    """
     video_id_match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
     if not video_id_match:
         return {"error": "Invalid YouTube URL"}
@@ -21,4 +30,4 @@ def get_youtube_transcript(url: str) -> dict:
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    mcp.run(transport="sse")

@@ -10,7 +10,7 @@ from mcp.server.fastmcp import FastMCP
 load_dotenv()
 
 # Initialize FastMCP
-mcp = FastMCP("tavily_search")
+mcp = FastMCP("tavily_search", host="127.0.0.1", port=8060)
 
 
 # Tavily API details
@@ -56,7 +56,16 @@ async def search_tavily(query: str) -> dict:
     
 @mcp.tool()
 async def get_tavily_results(query: str):
-    """Fetches Tavily search results for a given query."""
+    """Fetches Tavily search results for a given query.
+
+    Args:
+        query: Search query string to look up
+
+    Returns:
+        dict: Dictionary containing either search results or error message
+              - results: List of search results if successful
+              - error: Error message if request failed
+    """
     results = await search_tavily(query)
 
     if isinstance(results, dict):
@@ -72,4 +81,4 @@ if __name__ == "__main__":
     
     # asyncio.run(main())
    # mcp.run(transport="stdio")
-    mcp.run(transport="sse")
+   mcp.run(transport="sse")

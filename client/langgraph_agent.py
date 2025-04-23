@@ -4,6 +4,7 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import SystemMessage, HumanMessage
 #from langchain_ollama import ChatOllama
 from langchain_deepseek import ChatDeepSeek
+#from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
@@ -16,37 +17,66 @@ model = ChatDeepSeek(model="deepseek-chat", api_key=DEEPSEEK_API_KEY,temperature
     max_tokens=None,
     timeout=None,
     max_retries=2,)
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# model = ChatOpenAI(model="gpt-4.1", api_key=OPENAI_API_KEY,temperature=0,
+#     max_tokens=None,
+#     timeout=None,
+#     max_retries=2,)
 
-query = input("Query:")
+# query = input("Query:")
 
 # Define MCP servers
 async def run_agent():
     async with MultiServerMCPClient(
-        {
+        # {
+        #     "tavily": {
+        #         "command": "python",
+        #         "args": ["langgraph-mcp/servers/tavily.py"],
+        #         "transport": "stdio",
+        #     },
+        #     "youtube_transcript": {
+        #         "command": "python",
+        #         "args": ["langgraph-mcp/servers/yt_transcript.py"],
+        #         "transport": "stdio",
+        #     }, 
+        #     "maths": {
+        #         "command": "python",
+        #         "args": ["langgraph-mcp/servers/maths.py"],
+        #         "transport": "stdio",
+        #     },      
+        #     "weather": {
+        #         "command": "python",
+        #         "args": ["langgraph-mcp/servers/weather.py"],
+        #         "transport": "stdio",
+        #     },
+        # }
+               {
             "tavily": {
-                "command": "python",
-                "args": ["langgraph-mcp/servers/tavily.py"],
-                "transport": "stdio",
+                "url": "http://127.0.0.1:8060/sse",
+                "transport": "sse",
+
             },
             "youtube_transcript": {
-                "command": "python",
-                "args": ["langgraph-mcp/servers/yt_transcript.py"],
-                "transport": "stdio",
+                   "url": "http://127.0.0.1:8080/sse",
+                "transport": "sse",
             }, 
             "maths": {
-                "command": "python",
-                "args": ["langgraph-mcp/servers/maths.py"],
-                "transport": "stdio",
+                    "url": "http://127.0.0.1:8050/sse",
+                "transport": "sse",
             },      
             "weather": {
-                "command": "python",
-                "args": ["langgraph-mcp/servers/weather.py"],
-                "transport": "stdio",
+                    "url": "http://127.0.0.1:8070/sse",
+                "transport": "sse",
             },
         }
     ) as client:
         # Load available tools
         tools = client.get_tools()
+        # print(f"Tools: {tools}")
+        print("Available tools:")
+        for tool in tools:
+                print(f"  - {tool.name}: {tool.description}")
+        print("--------------------------------")
         agent = create_react_agent(model, tools)
         
         system_message = SystemMessage(content=(
@@ -56,6 +86,7 @@ async def run_agent():
         ))
         
         # Process the query
+        query = "What are the latest US tariff policies imposed on China?" #input("Query:")
         agent_response = await agent.ainvoke({"messages": [system_message, HumanMessage(content=query)]})
         
         return agent_response["messages"][-1].content
