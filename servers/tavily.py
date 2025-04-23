@@ -4,13 +4,22 @@ from dotenv import load_dotenv
 import httpx
 import asyncio
 from mcp.server.fastmcp import FastMCP
+import json
+
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  
+with open(path+"/setting.json", "r") as f:
+    setting = json.load(f)
+host = setting["host"]
+port = setting["port"]["tavily"]
+mcp_transport = setting["transport"]
+server_name = setting["server_name"]["tavily"]
 
 
 # Load environment variables
 load_dotenv()
 
 # Initialize FastMCP
-mcp = FastMCP("tavily_search", host="127.0.0.1", port=8060)
+mcp = FastMCP(server_name, host=host, port=port )
 
 
 # Tavily API details
@@ -81,4 +90,4 @@ if __name__ == "__main__":
     
     # asyncio.run(main())
    # mcp.run(transport="stdio")
-   mcp.run(transport="sse")
+   mcp.run(transport=mcp_transport)

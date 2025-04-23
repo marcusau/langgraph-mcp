@@ -1,0 +1,16 @@
+{
+    "host": "127.0.0.1",
+    "port": {
+        "tavily": 8060,
+        "youtube_transcript": 8080,
+        "maths": 8050,
+        "weather": 8070
+    },
+    "server_name":{
+        "tavily": "Tavily",
+        "youtube_transcript": "Youtube Transcript",
+        "maths": "Maths",
+        "weather": "Weather"
+    },
+    "transport": "sse"
+}

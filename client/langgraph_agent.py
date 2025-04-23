@@ -4,13 +4,24 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import SystemMessage, HumanMessage
 #from langchain_ollama import ChatOllama
 from langchain_deepseek import ChatDeepSeek
+import json
+import os
+
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+with open(path+"/setting.json", "r") as f:
+    setting = json.load(f)
+
+host = setting["host"]
+port = setting["port"]
+transport = setting["transport"]
+server_name = setting["server_name"]
+mcp_transport = setting["transport"]
+
 #from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-#OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
-#print(f"OLLAMA_MODEL: {OLLAMA_MODEL}")
-#model = ChatOllama(model=OLLAMA_MODEL)
+
 
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 model = ChatDeepSeek(model="deepseek-chat", api_key=DEEPSEEK_API_KEY,temperature=0,
@@ -51,22 +62,22 @@ async def run_agent():
         #     },
         # }
                {
-            "tavily": {
-                "url": "http://127.0.0.1:8060/sse",
-                "transport": "sse",
+            server_name["tavily"]  : {
+                "url": f"http://{host}:{port['tavily']}/sse",
+                "transport": mcp_transport,
 
             },
-            "youtube_transcript": {
-                   "url": "http://127.0.0.1:8080/sse",
-                "transport": "sse",
+            server_name["youtube_transcript"]: {
+                   "url": f"http://{host}:{port['youtube_transcript']}/sse",
+                "transport": mcp_transport,
             }, 
-            "maths": {
-                    "url": "http://127.0.0.1:8050/sse",
-                "transport": "sse",
+            server_name["maths"]: {
+                    "url": f"http://{host}:{port['maths']}/sse",
+                "transport": mcp_transport,
             },      
-            "weather": {
-                    "url": "http://127.0.0.1:8070/sse",
-                "transport": "sse",
+            server_name["weather"]: {
+                    "url": f"http://{host}:{port['weather']}/sse",
+                "transport": mcp_transport,
             },
         }
     ) as client:

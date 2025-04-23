@@ -5,8 +5,19 @@
 from mcp.server.fastmcp import FastMCP
 from typing import Any
 import sys
+import json
+import os   
 
-mcp = FastMCP("Math", host="127.0.0.1", port=8050)
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  
+with open(path+"/setting.json", "r") as f:
+    setting = json.load(f)
+
+host = setting["host"]
+port = setting["port"]["maths"]
+mcp_transport = setting["transport"]
+server_name = setting["server_name"]["maths"]
+
+mcp = FastMCP(server_name, host=host, port=port )
 
 # @mcp.tool()
 # def add(a: int, b: int) -> int:
@@ -46,4 +57,4 @@ async def multiply_numbers(value1: int, value2:int) -> int:
 
 if __name__ == "__main__":
     print("Server env is ", sys.prefix)
-    mcp.run(transport="sse")
+    mcp.run(transport=mcp_transport)

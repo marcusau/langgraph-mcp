@@ -1,8 +1,18 @@
 import re
 from mcp.server.fastmcp import FastMCP
 from youtube_transcript_api import YouTubeTranscriptApi
+import json
+import os
 
-mcp = FastMCP("youtube_transcript", host="127.0.0.1", port=8080)
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  
+with open(path+"/setting.json", "r") as f:
+    setting = json.load(f)
+host = setting["host"]
+port = setting["port"]["youtube_transcript"]
+mcp_transport = setting["transport"]
+server_name = setting["server_name"]["youtube_transcript"]
+
+mcp = FastMCP(server_name, host=host , port=port )
 
 @mcp.tool()
 def get_youtube_transcript(url: str) -> dict:
@@ -30,4 +40,4 @@ def get_youtube_transcript(url: str) -> dict:
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    mcp.run(transport="sse")
+    mcp.run(transport=mcp_transport)
