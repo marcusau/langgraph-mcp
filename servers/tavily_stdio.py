@@ -19,8 +19,8 @@ server_name = setting["server_name"]["tavily"]
 load_dotenv()
 
 # Initialize FastMCP
-mcp = FastMCP(server_name, host=host, port=port )
-#mcp = FastMCP(server_name, )
+#mcp = FastMCP(server_name, host=host, port=port )
+mcp = FastMCP(server_name, )
 
 # Tavily API details
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -89,5 +89,5 @@ if __name__ == "__main__":
     #     print(result)
     
     # asyncio.run(main())
-  # mcp.run(transport="stdio")
-   mcp.run(transport=mcp_transport)
+   mcp.run(transport="stdio")
+   #mcp.run(transport=mcp_transport)
