@@ -37,11 +37,16 @@ logging.basicConfig(
 )
 
 class MCPClient:
-    def __init__(self):
+    def __init__(self,platform:str="openai"):
         self.session = None
         self.exit_stack = AsyncExitStack()
         self.openai_api = AsyncOpenAI(api_key=OPENAI_API_KEY)
         self.deepseek_api = AsyncOpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_BASE_URL)
+
+        if platform == "openai":
+            self.llm_api = self.openai_api
+        elif platform == "deepseek":
+            self.llm_api = self.deepseek_api
 
     async def connect_to_sse_server(self, server_url: str):
         """Connect to an SSE MCP server."""
@@ -78,6 +83,24 @@ class MCPClient:
         #     # It's a script path, connect to stdio server
         #     await self.connect_to_stdio_server(server_path_or_url)
         await self.connect_to_sse_server(server_path_or_url)
+    
+    async def get_model_list(self)->list:
+        """Get a list of available models."""
+        response = await self.llm_api.models.list()
+        return [model.id for model in response.data]
+
+    async def call_llm(self,model:str,messages:list,tools:list,tool_choice:str="auto",max_tokens:int=8192,temperature:float=0.0,seed:int=42)->str:
+        """Call the LLM with the given model and messages."""
+        response = await self.llm_api.chat.completions.create(
+                                                model=model,
+                                                messages=messages,
+                                                tools= tools,
+                                                tool_choice=tool_choice,
+                                                max_tokens=max_tokens,
+                                                temperature=temperature,
+                                                seed=seed,
+                                            )
+        return response
 
     async def process_query(self, query: str, previous_messages: list = None) -> tuple[str, list]:
         """Process a query using the MCP server and available tools."""
@@ -122,23 +145,15 @@ class MCPClient:
 
         print(f"available_tools: {available_tools}\n")
         print(f"messages: {messages}\n")
-        response =await self.openai_api.chat.completions.create(
-                                                model=model,
-                                                messages=messages,
-                                                tools=available_tools,
-                                                tool_choice="auto",
-                                                max_tokens=1000,
-                                                temperature=0.0,
-                                                seed=42,
-                                            )
 
+        first_response =await self.call_llm(model=model,messages=messages,tools=available_tools,tool_choice="auto")
         # Process response and handle tool calls
         final_text = []
         assistant_message_content = []
         #print(f"response:  {response}")
 
         #print(f"response:  {response.choices}")
-        for choice in response.choices:
+        for choice in first_response.choices:
             
             if choice.finish_reason == 'stop':
                 final_text.append(choice.message.content)
@@ -179,16 +194,7 @@ class MCPClient:
                 # for message in messages:
                 #     print(f"{message}\n")
                 # # Get next response from Claude
-                next_response = await self.openai_api.chat.completions.create(
-                                                             model=model,
-                                                             messages=messages,
-                                                             tools=available_tools,
-                                                             tool_choice=None,
-                                                             max_tokens=1000,
-                                                             temperature=0.0,
-                                                             seed=42,
-                                                         )
-                #print(f"next_response: {next_response.choices[0].message.content}")
+                next_response = await self.call_llm(model=model,messages=messages,tools=available_tools,tool_choice=None)
                 final_text.append(next_response.choices[0].message.content)
                 messages.append({ "role": "assistant","content": next_response.choices[0].message.content })
 
@@ -225,7 +231,7 @@ class MCPClient:
 
 async def main():
 
-    client = MCPClient()
+    client = MCPClient(platform="deepseek")
     try:
         sse_server_url = "http://127.0.0.1:8060/sse"
         await client.connect_to_server(sse_server_url)
